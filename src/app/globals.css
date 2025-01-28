@@ -2,20 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@layer components {
+    /* Input Fields */
+    .input-primary {
+        @apply w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white;
+    }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+    .input-search {
+        @apply w-full px-4 py-3 pl-10 rounded-full border border-gray-200 focus:ring-2 focus:ring-amber-500 focus:border-transparent;
+    }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+    .input-quantity {
+        @apply w-20 px-3 py-2 text-center rounded-md border border-gray-200 focus:ring-2 focus:ring-blue-500;
+    }
+
+    /* Select Fields */
+    .select-primary {
+        @apply w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 appearance-none bg-white;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        @apply px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:scale-95 transition-all duration-200;
+    }
+
+    .btn-secondary {
+        @apply px-6 py-3 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 active:scale-95 transition-all;
+    }
+
+    .btn-accent {
+        @apply px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all;
+    }
+
+    .btn-outline {
+        @apply px-6 py-3 border-2 border-gray-800 text-gray-800 rounded-lg hover:bg-gray-800 hover:text-white transition-all;
+    }
+
+    .btn-danger {
+        @apply px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 active:scale-95 transition-all;
+    }
+
+    /* Small Buttons */
+    .btn-sm {
+        @apply px-4 py-2 text-sm;
+    }
+
+    /* Large Buttons */
+    .btn-lg {
+        @apply px-8 py-4 text-lg;
+    }
+
+    /* Cart & Wishlist Buttons */
+    .btn-cart {
+        @apply px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2;
+    }
+
+    .btn-wishlist {
+        @apply p-2 rounded-full border border-gray-200 hover:bg-pink-50 hover:border-pink-500 text-pink-500;
+    }
+
+    /* Filter & Sort */
+    .select-filter {
+        @apply p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 bg-white;
+    }
+
+    /* Checkbox & Radio */
+    .checkbox-primary {
+        @apply w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500;
+    }
+
+    .radio-primary {
+        @apply w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500;
+    }
 }
