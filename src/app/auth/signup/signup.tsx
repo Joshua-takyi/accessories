@@ -1,27 +1,20 @@
 "use client";
-
-import { Wrapper } from "@/components/wrapper";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { Register } from "@/server/apiCalls";
-import { toast } from "sonner";
+// import { Wrapper } from "@/components/wrapper";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useMutation} from "@tanstack/react-query";
+import {Register} from "@/server/apiCalls";
+import {toast} from "sonner";
 import Link from "next/link";
 import {ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, User} from "lucide-react";
 import {useState} from "react";
 import {useRouter} from "next/navigation";
 
-
-
-
-
 export default function Signup() {
-
     const [showPassword, setShowPassword] = useState(false);
-    const router=useRouter();
+    const router = useRouter();
 
-    // Zod schema for form validation
     const schema = z.object({
         name: z.string().min(3, "Name must be at least 3 characters"),
         email: z.string().email("Invalid email address"),
@@ -33,23 +26,20 @@ export default function Signup() {
             .regex(/[0-9]/, "Password must contain at least one number"),
     });
 
-// Infer the FormData type from the Zod schema
     type FormData = z.infer<typeof schema>;
 
-    const { register, handleSubmit,watch, formState: { errors } } = useForm<FormData>({
+    const {register, handleSubmit, watch, formState: {errors}} = useForm<FormData>({
         resolver: zodResolver(schema),
     });
     const password = watch("password", "");
-
-    // useMutation hook for handling the signup API call
-    const { mutate, isLoading } = useMutation({
-        mutationKey: ["signup"], // Remove `data` from the mutationKey
+    // @ts-ignore
+    const {mutate, isLoading} = useMutation({
+        mutationKey: ["signup"],
         mutationFn: async (data: FormData) => {
             try {
                 const res = await Register(data);
                 return res.data;
             } catch (error: any) {
-                // Handle errors properly
                 if (error.response) {
                     throw new Error(error.response.data.message || "An error occurred");
                 } else {
@@ -59,71 +49,67 @@ export default function Signup() {
         },
         onSuccess: () => {
             toast.success("Signed up successfully");
-           router.push("/auth/signin");
+            router.push("/auth/signin");
         },
         onError: (error: Error) => {
             toast.error(error.message);
         },
     });
 
-    // Form submission handler
     const onSubmit = (data: FormData) => {
-        mutate(data); // Pass the form data to the mutate function
+        mutate(data);
     };
+
     const passwordRequirements = [
-        { text: "At least 8 characters", met: password.length >= 8 },
-        { text: "One uppercase letter", met: /[A-Z]/.test(password) },
-        { text: "One lowercase letter", met: /[a-z]/.test(password) },
-        { text: "One number", met: /[0-9]/.test(password) },
+        {text: "At least 8 characters", met: password.length >= 8},
+        {text: "One uppercase letter", met: /[A-Z]/.test(password)},
+        {text: "One lowercase letter", met: /[a-z]/.test(password)},
+        {text: "One number", met: /[0-9]/.test(password)},
     ];
 
     return (
         <div className="grid md:grid-cols-2 min-h-screen">
             {/* Left side - Welcome Message */}
-            <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+            <div
+                className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-100 p-8">
                 <div className="max-w-md space-y-6 text-center">
-                    <h1 className="text-4xl font-bold text-gray-800">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                         Join Our Community
                     </h1>
                     <p className="text-lg text-gray-600">
-                        Create an account to start your journey with us. It only takes a few
-                        minutes.
+                        Create an account to start your journey with us. It only takes a few minutes.
                     </p>
                 </div>
             </div>
 
             {/* Right side - Form */}
-            <div className="flex items-center justify-center p-6">
+            <div className="flex items-center justify-center p-6 bg-white">
                 <div className="w-full max-w-md space-y-8">
                     {/* Mobile welcome message */}
                     <div className="md:hidden text-center space-y-2">
-                        <h1 className="text-2xl font-bold text-gray-800">Create Account</h1>
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
+                            Create Account
+                        </h1>
                         <p className="text-sm text-gray-600">Join our community today</p>
                     </div>
 
-                    <form
-                        onSubmit={handleSubmit(onSubmit)}
-                        method="POST"
-                        className="space-y-6"
-                    >
+                    <form onSubmit={handleSubmit(onSubmit)} method="POST" className="space-y-6">
                         <div className="space-y-4">
                             {/* Name field */}
                             <div className="space-y-2">
-                                <label
-                                    htmlFor="name"
-                                    className="block text-sm font-medium text-gray-700"
-                                >
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                                     Full Name
                                 </label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-5 w-5 text-gray-400" />
+                                    <div
+                                        className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <User className="h-5 w-5 text-cyan-400"/>
                                     </div>
                                     <input
                                         type="text"
                                         id="name"
                                         placeholder="John Doe"
-                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-base bg-gray-50"
                                         {...register("name")}
                                         disabled={isLoading}
                                     />
@@ -135,21 +121,19 @@ export default function Signup() {
 
                             {/* Email field */}
                             <div className="space-y-2">
-                                <label
-                                    htmlFor="email"
-                                    className="block text-sm font-medium text-gray-700"
-                                >
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                     Email Address
                                 </label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-5 w-5 text-gray-400" />
+                                    <div
+                                        className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Mail className="h-5 w-5 text-cyan-400"/>
                                     </div>
                                     <input
                                         type="email"
                                         id="email"
                                         placeholder="you@example.com"
-                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-base bg-gray-50"
                                         {...register("email")}
                                         disabled={isLoading}
                                     />
@@ -161,21 +145,19 @@ export default function Signup() {
 
                             {/* Password field */}
                             <div className="space-y-2">
-                                <label
-                                    htmlFor="password"
-                                    className="block text-sm font-medium text-gray-700"
-                                >
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                                     Password
                                 </label>
                                 <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Lock className="h-5 w-5 text-gray-400" />
+                                    <div
+                                        className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Lock className="h-5 w-5 text-cyan-400"/>
                                     </div>
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         id="password"
                                         placeholder="••••••••"
-                                        className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                        className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-base bg-gray-50"
                                         {...register("password")}
                                         disabled={isLoading}
                                     />
@@ -185,16 +167,14 @@ export default function Signup() {
                                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
                                     >
                                         {showPassword ? (
-                                            <EyeOff className="h-5 w-5 text-gray-400" />
+                                            <EyeOff className="h-5 w-5 text-cyan-400"/>
                                         ) : (
-                                            <Eye className="h-5 w-5 text-gray-400" />
+                                            <Eye className="h-5 w-5 text-cyan-400"/>
                                         )}
                                     </button>
                                 </div>
                                 {errors.password && (
-                                    <p className="text-sm text-red-500">
-                                        {errors.password.message}
-                                    </p>
+                                    <p className="text-sm text-red-500">{errors.password.message}</p>
                                 )}
 
                                 {/* Password requirements */}
@@ -203,16 +183,16 @@ export default function Signup() {
                                         <div key={index} className="flex items-center gap-2">
                                             <div
                                                 className={`w-1.5 h-1.5 rounded-full ${
-                                                    req.met ? "bg-green-500" : "bg-gray-300"
+                                                    req.met ? "bg-cyan-500" : "bg-gray-300"
                                                 }`}
                                             />
                                             <span
                                                 className={`text-xs ${
-                                                    req.met ? "text-green-600" : "text-gray-500"
+                                                    req.met ? "text-cyan-600" : "text-gray-500"
                                                 }`}
                                             >
-												{req.text}
-											</span>
+                        {req.text}
+                      </span>
                                         </div>
                                     ))}
                                 </div>
@@ -222,17 +202,17 @@ export default function Signup() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex items-center justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                         >
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                    <Loader2 className="w-5 h-5 mr-2 animate-spin"/>
                                     Creating account...
                                 </>
                             ) : (
                                 <>
                                     Sign Up
-                                    <ArrowRight className="ml-2 h-5 w-5" />
+                                    <ArrowRight className="ml-2 h-5 w-5"/>
                                 </>
                             )}
                         </button>
@@ -241,7 +221,7 @@ export default function Signup() {
                             Already have an account?{" "}
                             <Link
                                 href="/auth/signin"
-                                className="font-medium text-blue-600 hover:text-blue-500"
+                                className="font-medium text-cyan-600 hover:text-cyan-500 transition-colors duration-200"
                             >
                                 Sign in instead
                             </Link>
