@@ -1,15 +1,16 @@
 import {GetSession} from "@/utils/getSession";
 import Link from "next/link";
 import {User} from "lucide-react";
+import {Button} from "@/components/ui/button";
 
 export default async function Profile() {
     const session = await GetSession()
     if (!session?.user) {
         return (
             <Link href={`/auth/signin`}>
-                <button className="btn btn-primary">
-                    log in
-                </button>
+                <Button>
+                    Login
+                </Button>
             </Link>
         )
     } else {

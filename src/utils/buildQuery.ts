@@ -1,48 +1,41 @@
-/**
- * Builds a MongoDB query object based on URLSearchParams.
- * @param searchParams - The URLSearchParams object containing query parameters.
- * @returns A MongoDB query object.
- */
+// First, let's define a type for the query object
+type QueryValue =
+	| string
+	| number
+	| boolean
+	| Date
+	| RegExp
+	| { $regex: RegExp }
+	| { $in: RegExp[] | string[] }
+	| { $gte?: number; $lte?: number }
+	| { $or: Array<{ [key: string]: { $regex: RegExp } | { $in: RegExp[] } }> };
+
 export const BuildQuery = (
 	searchParams: URLSearchParams
-): Record<string, any> => {
-	const query: Record<string, any> = {}; // Use a generic object to store query conditions
+): Record<string, QueryValue> => {
+	const query: Record<string, QueryValue> = {};
 
-	/**
-	 * Helper function to add regex-based conditions.
-	 * @param key - The field name in the database.
-	 * @param value - The value to match (case-insensitive).
-	 */
-	const addRegexCondition = (key: string, value: string | null) => {
-		if (value) {
-			query[key] = { $regex: value, $options: "i" }; // Case-insensitive regex match
-		}
-	};
-
-	/**
-	 * Helper function to handle array-like parameters.
-	 * @param key - The field name in the database.
-	 * @param value - A comma-separated string to convert into an array.
-	 */
+	// Helper function to add array conditions
 	const addArrayCondition = (key: string, value: string | null) => {
 		if (value) {
-			const array = value.split(",").map((item) => item.trim()); // Split and trim values
-			query[key] = { $in: array.map((item) => new RegExp(item, "i")) }; // Case-insensitive regex match
+			const array = value.split(",").map((item) => item.trim());
+			query[key] = { $in: array.map((item) => new RegExp(item, "i")) };
 		}
 	};
 
-	// General search across multiple fields
+	// General search across multiple fields using the "type" parameter
 	const search = searchParams.get("type");
 	if (search) {
 		const searchTerms = search
 			.split(" ")
 			.map((term) => term.trim())
-			.filter(Boolean); // Remove empty strings
+			.filter(Boolean);
+
 		query.$or = [
-			{ title: { $regex: `\\b${search}\\b`, $options: "i" } },
-			{ category: { $regex: `\\b${search}\\b`, $options: "i" } },
+			{ title: { $regex: new RegExp(`\\b${search}\\b`, "i") } },
+			{ category: { $regex: new RegExp(`\\b${search}\\b`, "i") } },
 			{ tags: { $in: [new RegExp(`\\b${search}\\b`, "i")] } },
-			{ description: { $regex: `\\b${search}\\b`, $options: "i" } },
+			{ description: { $regex: new RegExp(`\\b${search}\\b`, "i") } },
 			{
 				models: {
 					$in: searchTerms.map((term) => new RegExp(`\\b${term}\\b`, "i")),
@@ -51,9 +44,24 @@ export const BuildQuery = (
 		];
 	}
 
-	// Add individual query parameters
-	addRegexCondition("title", searchParams.get("title"));
-	addRegexCondition("category", searchParams.get("category"));
+	// Update category query parameter to handle single or multiple categories.
+	// This supports both comma-separated values and multiple category parameters.
+	const categoryParams = searchParams.getAll("category");
+	if (categoryParams.length > 0) {
+		// Split by comma if necessary and flatten the result.
+		const categories = categoryParams
+			.flatMap((param) => param.split(","))
+			.map((cat) => cat.trim())
+			.filter(Boolean);
+
+		// Use an exact match if only one category is provided,
+		// otherwise use the $in operator.
+		if (categories.length === 1) {
+			query.category = categories[0];
+		} else if (categories.length > 1) {
+			query.category = { $in: categories };
+		}
+	}
 
 	// Numeric fields
 	const price = searchParams.get("price");
@@ -85,12 +93,22 @@ export const BuildQuery = (
 	const salesEndAt = searchParams.get("salesEndAt");
 	if (salesEndAt) query.salesEndAt = new Date(salesEndAt);
 
-	// Array-like fields
+	// Price filtering
+	const minPrice = searchParams.get("minPrice");
+	const maxPrice = searchParams.get("maxPrice");
+	if (minPrice || maxPrice) {
+		query.price = {};
+		if (minPrice) query.price.$gte = parseFloat(minPrice);
+		if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+	}
+
+	// Array-like fields for tags and models
 	addArrayCondition("tags", searchParams.get("tags"));
 	addArrayCondition("models", searchParams.get("models"));
 
 	return query;
 };
+
 interface SortProps {
 	sortBy: string;
 	sortOrder: string;

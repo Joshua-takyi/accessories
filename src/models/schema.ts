@@ -8,25 +8,41 @@ interface UserData extends Document {
     role: "user" | "admin";
     email: string;
     image?: string;
-    providersId?: string;
+    provider?: string;
+    providerId?: string;
 }
 
 // Define the schema for the user authentication
 const userAuthSchema: Schema = new mongoose.Schema(
     {
         name: {type: String, required: true},
-        password: {type: String, select: false, required: true},
-        email: {
+        email: {type: String, required: true, unique: true},
+        provider: {
             type: String,
             required: true,
-            unique: true,
+            enum: ["credentials", "auth0"],
+            default: "credentials",
+        },
+        password: {
+            type: String,
+            select: false, // Exclude password by default
+            required: function () {
+                return this.provider === "credentials"; // Only required for email/password users
+            },
+        },
+        providerId: {
+            type: String,
+            required: function () {
+                return this.provider !== "credentials"; // Required for OAuth users
+            },
+            sparse: true,
         },
         image: {type: String},
         role: {type: String, default: "user", enum: ["user", "admin"]},
-        providersId: {type: String},
     },
-    {timestamps: true},
+    {timestamps: true}
 );
+
 
 const CommentSchema: Schema = new mongoose.Schema(
     {
