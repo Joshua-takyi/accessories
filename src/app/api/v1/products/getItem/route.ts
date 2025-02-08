@@ -2,8 +2,8 @@ import logger from "@/utils/logger";
 import {NextRequest, NextResponse} from "next/server";
 import ConnectDb from "@/utils/connect";
 import mongoose from "mongoose";
-import {ProductModel} from "@/models/schema";
 import {BuildQuery, BuildSort} from "@/utils/buildQuery";
+import {ProductModel} from "@/models/schema";
 
 export async function GET(req: NextRequest) {
     try {

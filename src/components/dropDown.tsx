@@ -57,7 +57,7 @@ const DropdownMenu = ({header, items}: DropdownMenuProps) => {
 
     return (
         <div
-            className="static"
+            // className=""
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >

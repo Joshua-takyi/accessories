@@ -1,90 +1,16 @@
 import mongoose, {Schema, Document, Model} from "mongoose";
 
-// Define the UserData interface
+// --------------------------------------------------
+// Interfaces
+// --------------------------------------------------
+
 interface UserData extends Document {
-    _id: mongoose.Types.ObjectId;
     name: string;
-    password: string;
-    role: "user" | "admin";
     email: string;
-    image?: string;
-    provider?: string;
-    providerId?: string;
+    password: string;
+    role: string;
 }
 
-// Define the schema for the user authentication
-const userAuthSchema: Schema = new mongoose.Schema(
-    {
-        name: {type: String, required: true},
-        email: {type: String, required: true, unique: true},
-        provider: {
-            type: String,
-            required: true,
-            enum: ["credentials", "auth0"],
-            default: "credentials",
-        },
-        password: {
-            type: String,
-            select: false, // Exclude password by default
-            required: function () {
-                return this.provider === "credentials"; // Only required for email/password users
-            },
-        },
-        providerId: {
-            type: String,
-            required: function () {
-                return this.provider !== "credentials"; // Required for OAuth users
-            },
-            sparse: true,
-        },
-        image: {type: String},
-        role: {type: String, default: "user", enum: ["user", "admin"]},
-    },
-    {timestamps: true}
-);
-
-
-const CommentSchema: Schema = new mongoose.Schema(
-    {
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "UserAuth",
-            required: true,
-        },
-        product: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "ProductModel",
-            required: true,
-        },
-        comment: {type: String, required: true},
-    },
-    {timestamps: true},
-);
-
-const ReviewSchema: Schema = new mongoose.Schema({
-    user: {
-        ref: "UserAuth",
-        type: mongoose.Types.ObjectId,
-        required: true,
-    },
-    product: {
-        ref: "ProductModel",
-        type: mongoose.Types.ObjectId,
-        required: true,
-    },
-    rating: {
-        type: Number,
-        min: 1,
-        max: 5,
-        required: true,
-    },
-    comment: {
-        type: String,
-        required: false,
-    },
-});
-
-// Define the ProductData interface
 interface ProductData extends Document {
     title: string;
     description: string;
@@ -111,6 +37,62 @@ interface ProductData extends Document {
     salesStartAt?: Date;
     salesEndAt?: Date;
 }
+
+interface CartData extends Document {
+    userId: string;
+    products: {
+        productId: string;
+        quantity: number;
+        color: string;
+        model: string;
+        totalPrice: number;
+    }[];
+    updatedAt: Date;
+}
+
+interface CommentData extends Document {
+    user: mongoose.Types.ObjectId;
+    product: mongoose.Types.ObjectId;
+    comment: string;
+}
+
+interface ReviewData extends Document {
+    user: mongoose.Types.ObjectId;
+    product: mongoose.Types.ObjectId;
+    rating: number;
+    comment?: string;
+}
+
+// --------------------------------------------------
+// Schemas
+// --------------------------------------------------
+
+const userSchema: Schema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: true,
+        },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+        },
+        password: {
+            type: String,
+            required: true,
+            select: false,
+        },
+        role: {
+            type: String,
+            enum: ["admin", "user"],
+            default: "user",
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
 
 const ProductSchema: Schema = new mongoose.Schema(
     {
@@ -153,16 +135,6 @@ const ProductSchema: Schema = new mongoose.Schema(
         rating: {
             type: Number,
             default: 0,
-            required: false,
-        },
-        comments: {
-            type: [CommentSchema],
-            default: [],
-            required: false,
-        },
-        reviews: {
-            type: [ReviewSchema],
-            default: [],
             required: false,
         },
         isBestSeller: {
@@ -219,65 +191,128 @@ const ProductSchema: Schema = new mongoose.Schema(
             default: null,
         },
     },
-    {timestamps: true},
+    {timestamps: true}
 );
 
-interface CartData extends Document {
-    userId: string,
-    product: {
-        productId: string,
-        quantity: number,
-        color: string,
-        model: string,
-        totalPrice: number,
-    }
-}
-
-const CartSchema: Schema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Types.ObjectId,
-        ref: "UserAuth",
-        required: true,
+const CommentSchema: Schema = new mongoose.Schema(
+    {
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "UserAuth",
+            required: true,
+        },
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "ProductModel", // Corrected ref
+            required: true,
+        },
+        comment: {type: String, required: true},
     },
-    products: [
-        {
-            productId: {
-                type: mongoose.Types.ObjectId,
-                ref: "ProductModel",
-                required: true
+    {timestamps: true}
+);
+
+const ReviewSchema: Schema = new mongoose.Schema(
+    {
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "UserAuth",
+            required: true,
+        },
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "ProductModel", // Corrected ref
+            required: true,
+        },
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+            required: true,
+        },
+        comment: {
+            type: String,
+            required: false,
+        },
+    },
+    {timestamps: true}
+);
+
+const CartSchema: Schema = new mongoose.Schema(
+    {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: "UserAuth",
+        },
+        products: [
+            {
+                productId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "ProductModel", // Corrected ref
+                    required: true,
+                },
+                quantity: {
+                    type: Number,
+                    required: true,
+                    min: 1,
+                },
+                color: {
+                    type: String,
+                    required: true,
+                    default: "transparent",
+                },
+                model: {
+                    type: String,
+                    required: true,
+                },
+                totalPrice: {
+                    type: Number,
+                    required: true,
+                    default: 0,
+                },
             },
-            quantity: {
-                type: Number,
-                required: true,
-                min: 1
-            },
-            color: {
-                type: String,
-                required: true,
-                default: "transparent"
-            },
-            model: {
-                type: String,
-                required: true,
-            },
-            totalPrice: {
-                type: Number,
-                required: true,
-                default: 0
-            }
-        }
-    ]
-}, {
-    timestamps: true,
-})
+        ],
+    },
+    {
+        timestamps: true,
+    }
+);
+
+// TTL Index: Delete carts that haven't been updated in 5 days (5 * 24 * 60 * 60 seconds)
+CartSchema.index({updatedAt: 1}, {expireAfterSeconds: 5 * 24 * 60 * 60});
+
+// --------------------------------------------------
+// Models
+// --------------------------------------------------
 
 const ProductModel: Model<ProductData> =
-    mongoose?.models?.Product ||
-    mongoose.model<ProductData>("Product", ProductSchema);
+    mongoose?.models?.ProductModel ||
+    mongoose.model<ProductData>("ProductModel", ProductSchema);
+
+const CartModel: Model<CartData> =
+    mongoose?.models?.CartModel ||
+    mongoose.model<CartData>("CartModel", CartSchema);
 
 const UserAuth: Model<UserData> =
     mongoose?.models?.UserAuth ||
-    mongoose.model<UserData>("UserAuth", userAuthSchema);
+    mongoose.model<UserData>("UserAuth", userSchema);
 
-const CartModel: Model<CartData> = mongoose?.models?.CartModel || mongoose.model<CartData>("CartModel", CartSchema)
-export {UserAuth, ProductModel, CartModel};
+const CommentModel: Model<CommentData> =
+    mongoose?.models?.CommentModel ||
+    mongoose.model<CommentData>("CommentModel", CommentSchema);
+
+const ReviewModel: Model<ReviewData> =
+    mongoose?.models?.ReviewModel ||
+    mongoose.model<ReviewData>("ReviewModel", ReviewSchema);
+
+// --------------------------------------------------
+// Exports
+// --------------------------------------------------
+
+export {
+    ProductModel,
+    CartModel,
+    UserAuth,
+    CommentModel,
+    ReviewModel,
+};
